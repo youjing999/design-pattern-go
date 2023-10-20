@@ -747,3 +747,71 @@ func main() {
 }
 ```
 
+# 6.外观模式
+
+> 外观模式：是一种结构型设计模式，提供了一个统一的接口，用于访问子系统中的一组接口。外观模式隐藏了子系统的复杂性，使得客户端可以通过简单的接口与子系统进行交互，而不需要了解子系统的内部实现细节。
+>
+> 外观模式通过引入一个外观类（Facade Class），将一组子系统的接口封装起来。客户端只需与外观类进行交互，而不需要直接与各个子系统进行通信。外观类负责将客户端的请求转发给适当的子系统对象，并返回结果给客户端。
+>
+> 外观模式的核心思想是简化客户端与子系统之间的交互，并降低客户端对子系统的依赖。它提供了一种高层次的接口，使得客户端可以更方便地使用子系统。
+
+![图片](https://myresou.oss-cn-shanghai.aliyuncs.com/img/640-20231020134500521.png)
+
+外观模式-代码实现
+
+```go
+import "fmt"
+
+//OutpatientSystem 门诊系统
+type OutpatientSystem struct {
+}
+
+func (out *OutpatientSystem) RegistrationOperation() {
+	fmt.Println("门诊系统...挂号")
+}
+
+// DoctorSystem 医生系统
+type DoctorSystem struct {
+}
+
+func (doctor *DoctorSystem) treatmentOperation() {
+	fmt.Println("医生系统...治疗")
+}
+
+// PharmacySystem 药房系统
+type PharmacySystem struct {
+}
+
+func (p *PharmacySystem) dispensingOperation() {
+	fmt.Println("药房系统...发药")
+}
+
+type Facade struct {
+	outpatient     *OutpatientSystem
+	doctorSystem   *DoctorSystem
+	pharmacySystem *PharmacySystem
+}
+
+func NewFacade() *Facade {
+	return &Facade{
+		new(OutpatientSystem),
+		new(DoctorSystem),
+		new(PharmacySystem),
+	}
+}
+
+func (facade *Facade) start() {
+	facade.outpatient.RegistrationOperation()
+	facade.doctorSystem.treatmentOperation()
+	facade.pharmacySystem.dispensingOperation()
+}
+
+func main() {
+	facade := NewFacade()
+	facade.start()
+}
+```
+
+
+
+
