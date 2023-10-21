@@ -757,7 +757,7 @@ func main() {
 
 ![图片](https://myresou.oss-cn-shanghai.aliyuncs.com/img/640-20231020134500521.png)
 
-外观模式-代码实现
+## 外观模式-代码实现
 
 ```go
 import "fmt"
@@ -814,4 +814,130 @@ func main() {
 
 
 
+# 7.桥接模式
+
+> 桥接模式（Bridge Pattern）又叫作桥梁模式、接口模式或柄体（Handle and Body）模式，指将抽象部分与具体实现部分分离，使它们都可以独立地变化，属于结构型设计模式。
+
+
+
+举例：某业务系统, 现需要开发数据库导出工具, 根据SQL语句导出表数据到文件，数据库类型有多种, 目前需要支持MySQL, Orache 未来可能支持 SQLServer。导出格式可能有多种, 目前需要支持CSV和JSON格式
+
+此场景下, 数据库类型是一种维度, 导出格式是另一种维度, 组合可能性是乘法关系，即数据可以从MySQL读出后，导出成CSV 或者JSON格式，对于Oracle也是同样的情况。
+
+![图片](https://myresou.oss-cn-shanghai.aliyuncs.com/img/640.png)
+
+## 桥接模式-代码实现
+
+```go
+import (
+	"fmt"
+	"math/rand"
+)
+
+type IDataFetcher interface {
+	Fetch(sql string) []interface{}
+}
+
+// IDataExport abstraction
+type IDataExport interface {
+	Fetcher(fetcher IDataFetcher)
+	Export(sql string) error
+}
+
+type MysqlFetcher struct {
+	config string
+}
+
+func NewMysqlFetcher(config string) *MysqlFetcher {
+	return &MysqlFetcher{
+		config: config,
+	}
+}
+
+func (mysql *MysqlFetcher) Fetch(sql string) []interface{} {
+	fmt.Println("Fetch data from mysql source:" + mysql.config)
+	data := make([]interface{}, 0)
+	data = append(data, rand.Perm(10), rand.Perm(20))
+	return data
+}
+
+type OracleFetcher struct {
+	config string
+}
+
+func NewOracleFetcher(config string) *MysqlFetcher {
+	return &MysqlFetcher{
+		config: config,
+	}
+}
+
+func (oracle *OracleFetcher) Fetcher(sql string) []interface{} {
+	fmt.Println("Fetch data from mysql source:" + oracle.config)
+	data := make([]interface{}, 0)
+	data = append(data, rand.Perm(10), rand.Perm(20))
+	return data
+}
+
+type CsvExporter struct {
+	mFetcher IDataFetcher
+}
+
+func (ce *CsvExporter) Fetcher(fetcher IDataFetcher) {
+	ce.mFetcher = fetcher
+}
+
+func (ce *CsvExporter) Export(sql string) error {
+	rows := ce.mFetcher.Fetch(sql)
+	fmt.Printf("CsvExporter.Export, got %v rows\n", len(rows))
+	for i, v := range rows {
+		fmt.Printf("  行号: %d 值: %s\n", i+1, v)
+	}
+	return nil
+}
+
+func NewCsvExporter(fetcher IDataFetcher) IDataExport {
+	return &CsvExporter{
+		mFetcher: fetcher,
+	}
+}
+
+type JsonExporter struct {
+	mFetcher IDataFetcher
+}
+
+func (ce *JsonExporter) Fetcher(fetcher IDataFetcher) {
+	ce.mFetcher = fetcher
+}
+
+func (ce *JsonExporter) Export(sql string) error {
+	rows := ce.mFetcher.Fetch(sql)
+	fmt.Printf("Json.Export, got %v rows\n", len(rows))
+	for i, v := range rows {
+		fmt.Printf("  行号: %d 值: %s\n", i+1, v)
+	}
+	return nil
+}
+func NewJsonExporter(fetcher IDataFetcher) IDataExport {
+	return &JsonExporter{
+		mFetcher: fetcher,
+	}
+}
+
+func main() {
+	mFetcher := NewMysqlFetcher("mysql://127.0.0.1:3306")
+	csvExporter := NewCsvExporter(mFetcher)
+	err := csvExporter.Export("select * from xzq")
+	if err != nil {
+		fmt.Println("导出错误")
+	}
+
+	fmt.Printf("\n")
+	fetcher := NewOracleFetcher("oracle://192.168.1.1")
+	jsonExport := NewJsonExporter(fetcher)
+	err = jsonExport.Export("select * from yj")
+	if err != nil {
+		fmt.Println("导出错误")
+	}
+}
+```
 
