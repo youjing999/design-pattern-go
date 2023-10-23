@@ -941,3 +941,126 @@ func main() {
 }
 ```
 
+
+
+# 8.享元模式
+
+> **享元模式**是一种结构型设计模式， 它的核心思想是通过共享多个对象所共有的相同状态，从而有效的支持在有限的内存中载入大量细粒度的对象。
+
+享元模式的意图是复用对象，节省内存，前提是享元对象是不可变对象，不可变对象指的是初始化之后，对象的状态不会改变了，也就是不会存在被修改的情况。
+
+享元模式的实现思路是，在享元对象的工厂类中，通过一个 Map 来缓存已经创建的享元对象，达到复用的目的。
+
+## 举例：享元模式的应用
+
+假设我们要设计一个多人在线棋牌游戏的平台。在每个牌局里我们会给用户发牌然后进行对战，如果在平台中每创建一个牌局就需要初始化对应的卡牌，这样显然很浪费，因为一套扑克牌里的卡牌是固定的，不管多少个牌局使用的扑克牌都是一样的，只是牌的玩法不一样。
+
+```go
+import "fmt"
+
+/**
+享元模式
+*/
+
+type Card struct {
+	Name  string
+	Color string
+}
+
+var pokerCards = map[int]*Card{
+	1: {
+		Name:  "A",
+		Color: "紅",
+	},
+	2: {
+		Name:  "A",
+		Color: "黑",
+	},
+}
+
+type PokerGame struct {
+	Cards map[int]*Card
+}
+
+func NewPokerGame() *PokerGame {
+	board := &PokerGame{
+		Cards: map[int]*Card{},
+	}
+
+	for i, val := range pokerCards {
+		board.Cards[i] = val
+	}
+	return board
+}
+
+func main() {
+	game1 := NewPokerGame()
+	game2 := NewPokerGame()
+	fmt.Println(game1.Cards[1] == game2.Cards[1])
+}
+```
+
+## 享元模式-代码实现
+
+![图片](https://myresou.oss-cn-shanghai.aliyuncs.com/img/640-20231023103358174.png)
+
+```go
+package main
+
+import "fmt"
+
+/**
+享元模式
+*/
+
+// Flyweight 结构体表示享元对象，其中包含一个共享的数据 sharedData。
+// Operation 方法用于执行操作，它接收一个唯一的数据 uniqueData，并将共享数据和唯一数据打印出来。
+type Flyweight struct {
+	sharedData string
+}
+
+func (f *Flyweight) Operation(uniqueData string) {
+	fmt.Printf("Shared data: %s, Unique data: %s\n", f.sharedData, uniqueData)
+}
+
+//FlyweightFactory 定义享元工厂
+type FlyweightFactory struct {
+	flyweights map[string]*Flyweight
+}
+
+func NewFlyweightFactory() *FlyweightFactory {
+	flyweightsMap := make(map[string]*Flyweight)
+	flyweightsMap["sharedData1"] = &Flyweight{
+		"go sharedData1",
+	}
+
+	flyweightsMap["sharedData2"] = &Flyweight{
+		"go sharedData2",
+	}
+	return &FlyweightFactory{
+		flyweights: make(map[string]*Flyweight),
+	}
+
+}
+
+func (ff *FlyweightFactory) GetFlyweight(key string) *Flyweight {
+	if flyweight, ok := ff.flyweights[key]; ok {
+		return flyweight
+	}
+
+	flyweight := &Flyweight{sharedData: key}
+	ff.flyweights[key] = flyweight
+	return flyweight
+}
+
+func main() {
+	factory := NewFlyweightFactory()
+
+	flyweight1 := factory.GetFlyweight("sharedData1")
+	flyweight1.Operation("uniqueData1")
+
+	flyweight2 := factory.GetFlyweight("sharedData2")
+	flyweight2.Operation("uniqueData2")
+}
+```
+
