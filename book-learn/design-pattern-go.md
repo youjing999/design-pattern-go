@@ -1064,3 +1064,84 @@ func main() {
 }
 ```
 
+
+
+# 9.观察者模式
+
+>观察者模式 (Observer Pattern)，定义对象间的一种一对多依赖关系，使得每当一个对象状态发生改变时，其相关依赖对象皆得到通知，依赖对象在收到通知后，可自行调用自身的处理程序，实现想要干的事情，比如更新自己的状态。
+>
+>发布者对观察者唯一了解的是它实现了某个接口（观察者接口）。这种松散耦合的设计最大限度地减少了对象之间的相互依赖，因此使我们能够构建灵活的系统。
+
+观察者模式也经常被叫做发布 - 订阅（Publish/Subscribe）模式、上面说的定义对象间的一种一对多依赖关系，一 - 指的是发布变更的主体对象，多 - 指的是订阅变更通知的订阅者对象。
+
+发布的状态变更信息会被包装到一个对象里，这个对象被称为事件，事件一般用英语过去式的语态来命名，比如用户注册时，用户模块在用户创建好后发布一个事件 UserCreated 或者 UserWasCreated 都行，这样从名字上就能看出，这是一个已经发生过的事件。
+
+事件发布给订阅者的过程，其实就是遍历一下已经注册的事件订阅者，逐个去调用订阅者实现的观察者接口方法。
+
+```go
+package main
+
+import "fmt"
+
+// Observer 观察者接口
+type Observer interface {
+	Update(string)
+}
+
+// Subject 主题接口
+type Subject interface {
+	Register(Observer)
+	Remove(Observer)
+	Notify(string)
+}
+
+//ConObserver 观察者实现
+type ConObserver struct {
+	name string
+}
+
+func (c *ConObserver) Update(msg string) {
+	fmt.Printf("%s 接收到消息: %s\n", c.name, msg)
+}
+
+//ConSubject 具体主题
+type ConSubject struct {
+	observers []Observer
+}
+
+func (c *ConSubject) Register(observer Observer) {
+	c.observers = append(c.observers, observer)
+}
+
+func (c *ConSubject) Remove(observer Observer) {
+	for i, o := range c.observers {
+		if o == observer {
+			c.observers = append(c.observers[:i], c.observers[i+1:]...)
+			break
+		}
+	}
+}
+
+func (c *ConSubject) Notify(msg string) {
+	for _, observer := range c.observers {
+		observer.Update(msg)
+	}
+}
+
+func main() {
+	subject := &ConSubject{}
+
+	observer1 := &ConObserver{name: "Observer 1"}
+	observer2 := &ConObserver{name: "Observer 2"}
+	observer3 := &ConObserver{name: "Observer 3"}
+
+	subject.Register(observer1)
+	subject.Register(observer2)
+	subject.Register(observer3)
+
+	subject.Notify("Hello, observers!")
+	subject.Remove(observer2)
+	subject.Notify("Observer 2 has been unregistered.")
+}
+```
+
