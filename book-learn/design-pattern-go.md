@@ -1078,6 +1078,8 @@ func main() {
 
 事件发布给订阅者的过程，其实就是遍历一下已经注册的事件订阅者，逐个去调用订阅者实现的观察者接口方法。
 
+## 观察者模式-代码实现
+
 ```go
 package main
 
@@ -1142,6 +1144,83 @@ func main() {
 	subject.Notify("Hello, observers!")
 	subject.Remove(observer2)
 	subject.Notify("Observer 2 has been unregistered.")
+}
+```
+
+
+
+# 10.策略模式
+
+> 定义一类算法族，将每个算法分别封装起来，让他们可以互相替换，此模式让算法的变化独立于使用算法的客户端。
+
+算法族中的每个算法（即策略）则是说的完成这项任务的具体方式，结合我们的例子来说就是可以用支付宝也可以用微信支付这两种方式 (算法) ，来完成我们定义的用户支付这项任务 (算法族)。
+
+策略模式主要用于允许我们的程序在运行时动态更改一个任务的处理逻辑，常见的应用场景有针对软件用户群体的不同策略切换（用一个烂大街的词儿表达就是千人千面）和业务流程兜底切换。
+
+策略模式要解决的问题是，让使用客户端跟具体执行任务的策略解耦，不管使用哪种策略完成任务，不需要更改客户端使用策略的方式。
+
+![](https://myresou.oss-cn-shanghai.aliyuncs.com/img/640-20231025103929996.png)
+
+主要有四类角色：
+
+- 客户端：这个客户端可以简单理解成是发起任务调用的代码。
+- 抽象策略：就是上面定义中的算法族，是所有具体策略的通用接口，声明了用于执行完成任务的方法。
+- 具体策略：实现了抽象策略，定义了具体应该怎么完成任务。
+- 上下文：作为客户端和具体策略的中间层，达到客户端与具体策略解耦的效果，它维护指向具体策略的引用，且仅通过抽象策略中定义的接口与具体策略进行交流。常用的实现方式是通过组合
+
+## 策略模式-代码实现
+
+付钱，客户端使用微信支付、或者是支付宝支付。如果使用策略模式进行解耦，客户端都可以使用同样的调用方式完成支付，甚至可以在微信支付不能使用时，让应用无痛地切换到支付宝支付，来完成支付。
+
+```go
+package main
+
+import "fmt"
+
+/**
+策略模式
+*/
+
+type PaymentStrategy interface {
+	Pay(money float64) string
+}
+
+type WxPay struct {
+}
+
+func (wx *WxPay) Pay(money float64) string {
+	return fmt.Sprintf("使用 wx支付了 %.2f", money)
+}
+
+type ZfbPay struct {
+}
+
+func (zfb *ZfbPay) Pay(money float64) string {
+	return fmt.Sprintf("使用 zfb支付了 %.2f", money)
+}
+
+type ContextStrategy struct {
+	paymentStrategy PaymentStrategy
+}
+
+func (c *ContextStrategy) SetStrategy(paymentStrategy PaymentStrategy) {
+	c.paymentStrategy = paymentStrategy
+}
+
+func (c *ContextStrategy) DoTask(money float64) string {
+	return c.paymentStrategy.Pay(money)
+}
+
+func main() {
+	ctx := &ContextStrategy{}
+	ctx.SetStrategy(&WxPay{})
+	task := ctx.DoTask(200)
+	fmt.Println(task)
+
+	fmt.Println("---------")
+	ctx.SetStrategy(&ZfbPay{})
+	doTask := ctx.DoTask(300)
+	fmt.Println(doTask)
 }
 ```
 
