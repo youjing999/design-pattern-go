@@ -1224,3 +1224,59 @@ func main() {
 }
 ```
 
+
+
+# 11.模板方法模式
+
+> 模板方法设计模式是一种行为设计模式，它在一个方法中定义了一个算法的骨架，允许子类为一个或多个步骤提供实现。模板方法使得子类可以不改变一个算法的结构即可重新定义该算法的某些特定步骤。
+
+**当要做一件事儿的时候，这件事儿的流程和步骤是固定好的，但是每一个步骤的具体实现方式是不一定的。这个时候就可以使用模板模式**。
+
+模版模式惯常的用法是，在一个方法模版方法中定义一个算法或者逻辑的流程和步骤，比如先调内部的方法A 再调内部方法B，满足某个条件了不调方法 C 等等，而这个流程中每个步骤对应的方法都可以推迟到子类中去实现，这就给了程序在不改变大流程、步骤的情况下，完成相似性业务的能力。
+
+<img src="https://myresou.oss-cn-shanghai.aliyuncs.com/img/640.png" alt="图片" style="zoom:50%;" />
+
+## 模板方法-代码实现
+
+```go
+package main
+
+import "fmt"
+
+// AbstractClass 抽象类
+type AbstractClass interface {
+	TemplateMethod()
+	AbstractMethod()
+	HookMethod()
+}
+
+// ConcreteClass 具体子类
+type ConcreteClass struct{}
+
+func (c *ConcreteClass) TemplateMethod() {
+	fmt.Println("TemplateMethod: Start")
+
+	c.AbstractMethod()
+	c.HookMethod()
+
+	fmt.Println("TemplateMethod: End")
+}
+
+// AbstractMethod 抽象方法
+func (c *ConcreteClass) AbstractMethod() {
+	fmt.Println("AbstractMethod: Implemented by ConcreteClass")
+}
+
+// HookMethod 钩子方法
+func (c *ConcreteClass) HookMethod() {
+	fmt.Println("HookMethod: Default implementation in ConcreteClass")
+}
+
+func main() {
+	abstractClass := &ConcreteClass{}
+
+	abstractClass.TemplateMethod()
+}
+
+```
+
