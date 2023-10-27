@@ -1280,3 +1280,55 @@ func main() {
 
 ```
 
+
+
+# 12.迭代器模式
+
+> 提供了一种方法顺序地访问一个聚合对象中的元素，而不是暴露该对象的内部表示。这里说的聚合对象也常被称作集合，是编程中最常使用的数据类型之一，有些编程序言还内置提供了整个集合框架，比如Java内置提供的Collection类族、Map类族。
+
+![图片](https://myresou.oss-cn-shanghai.aliyuncs.com/img/640-20231027090935686.png)
+
+```go
+package main
+
+import "fmt"
+
+type Iterator interface {
+	HasNext() bool
+	Next() interface{}
+}
+
+type MyIterator struct {
+	slice []interface{}
+	index int
+}
+
+func NewMyIterator(slice []interface{}) *MyIterator {
+	return &MyIterator{
+		slice: slice,
+		index: 0,
+	}
+}
+
+func (my *MyIterator) HasNext() bool {
+	return my.index < len(my.slice)
+}
+
+func (my *MyIterator) Next() interface{} {
+	if my.HasNext() {
+		val := my.slice[my.index]
+		my.index++
+		return val
+	}
+	return nil
+}
+
+func main() {
+	slice := []interface{}{1, 2, 3, 4, 5}
+	iterator := NewMyIterator(slice)
+	for iterator.HasNext() {
+		fmt.Println(iterator.Next())
+	}
+}
+```
+
